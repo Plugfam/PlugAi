@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plugfam AI - Intelligent Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+            padding: 32px;
+            max-width: 900px;
+            width: 100%;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .header h1 {
+            color: #1a202c;
+            font-size: 2.8em;
+            font-weight: 700;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            color: #4a5568;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+        
+        .chat-container {
+            background: #f7fafc;
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            max-height: 450px;
+            overflow-y: auto;
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+        }
+        
+        .message {
+            margin-bottom: 18px;
+            padding: 16px 20px;
+            border-radius: 20px;
+            max-width: 85%;
+            word-wrap: break-word;
+            animation: messageSlide 0.4s ease-out;
+            line-height: 1.5;
+            font-size: 15px;
+        }
+        
+        .user-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            margin-left: auto;
+            text-align: left;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .ai-message {
+            background: #ffffff;
+            color: #2d3748;
+            margin-right: auto;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .input-container {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            align-items: flex-end;
+        }
+        
+        .question-input {
+            flex: 1;
+            padding: 18px 24px;
+            border: 2px solid #e2e8f0;
+            border-radius: 28px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+            resize: none;
+            min-height: 56px;
+            max-height: 120px;
+            font-family: inherit;
+        }
+        
+        .question-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .ask-btn {
+            padding: 18px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 28px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-height: 56px;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .ask-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+        
+        .ask-btn:active {
+            transform: translateY(0);
+        }
+        
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 8px;
+        }
+        
+        .suggestion {
+            padding: 12px 18px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-align: center;
+            color: #4a5568;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .suggestion:hover {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 16px 20px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            max-width: 100px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: typing 1.6s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(2) { animation-delay: 0.3s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.6s; }
+        
+        .status-text {
+            color: #718096;
+            font-size: 13px;
+            text-align: center;
+            margin-top: 16px;
+            font-style: italic;
+        }
+        
+        @keyframes messageSlide {
+            from { 
+                opacity: 0; 
+                transform: translateY(20px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% { 
+                transform: translateY(0); 
+                opacity: 0.4;
+            }
+            30% { 
+                transform: translateY(-12px); 
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .input-container {
+                flex-direction: column;
+                gap: 12px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .suggestions {
+                grid-template-columns: 1fr;
+            }
+            
+            .message {
+                max-width: 95%;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Plugfam AI</h1>
+            <p>Designed by Salifu • Your intelligent assistant</p>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message ai-message">
+                Hey there! I'm Plugfam AI. I'm here to help you with questions, provide information, assist with problem-solving, and have meaningful conversations. I can help with a wide range of topics including science, technology, math, history, current events, creative tasks, and much more. What's on your mind today?
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+        </div>
+        
+        <div class="input-container">
+            <textarea class="question-input" id="questionInput" placeholder="Ask me anything... I'm here to help!" rows="1"></textarea>
+            <button class="ask-btn" onclick="askQuestion()">Send</button>
+        </div>
+        
+        <div class="suggestions">
+            <div class="suggestion" onclick="askSuggestion('Who are you?')">Who are you?</div>
+            <div class="suggestion" onclick="askSuggestion('Explain artificial intelligence')">Explain AI</div>
+            <div class="suggestion" onclick="askSuggestion('Help me solve a math problem')">Math Help</div>
+            <div class="suggestion" onclick="askSuggestion('Tell me about recent technology trends')">Tech Trends</div>
+            <div class="suggestion" onclick="askSuggestion('Creative writing ideas')">Creative Ideas</div>
+            <div class="suggestion" onclick="askSuggestion('How can I improve my productivity?')">Productivity Tips</div>
+        </div>
+        
+        <div class="status-text">
+            Powered by advanced AI • Always learning, always helping
+        </div>
+    </div>
+
+    <script>
+        class PlugfamAI {
+            constructor() {
+                this.conversationContext = [];
+                this.userPreferences = {};
+                
+                this.knowledgeBase = {
+                    // Enhanced knowledge with Meta AI-style responses
+                    'artificial intelligence': "Artificial Intelligence is a fascinating field! It's essentially computer systems that can perform tasks typically requiring human intelligence - like learning, reasoning, problem-solving, and understanding language. AI powers everything from virtual assistants to recommendation systems. There are different types: narrow AI (like what I am), which excels at specific tasks, and the theoretical general AI. What specifically about AI interests you?",
+                    
+                    'machine learning': "Machine Learning is a subset of AI where systems learn patterns from data without being explicitly programmed for every scenario. Think of it like teaching a computer to recognize cats by showing it thousands of cat photos, rather than programming every possible cat feature. It's behind many technologies we use daily - from email spam detection to Netflix recommendations!",
+                    
+                    'technology trends': "Some exciting current tech trends include: AI integration across industries, quantum computing breakthroughs, sustainable tech solutions, Web3 and decentralized systems, AR/VR becoming mainstream, edge computing, and biotechnology advances. The pace of innovation is incredible! Which area would you like to explore further?",
+                    
+                    'productivity': "Great question! Here are some proven productivity strategies: 1) Time blocking - dedicate specific time slots to tasks, 2) The 2-minute rule - if something takes under 2 minutes, do it now, 3) Focus on high-impact activities first, 4) Take regular breaks (Pomodoro technique works well), 5) Minimize distractions and notifications. What specific productivity challenges are you facing?",
+                    
+                    'creativity': "Creativity is such a wonderful human capacity! Some ways to boost creativity: expose yourself to diverse experiences, practice brainstorming without judgment, take breaks to let your mind wander, collaborate with others, ask 'what if' questions, and don't fear failure. Creative blocks are normal - sometimes stepping away and returning with fresh eyes helps. What creative project are you working on?",
+                    
+                    'science': "Science is amazing - it's our way of understanding the world through observation, experimentation, and evidence. From the tiniest quantum particles to vast galaxies, from DNA to ecosystems, science reveals incredible patterns and connections. Is there a particular scientific field or discovery you're curious about?",
+                    
+                    'learning': "Learning is a lifelong adventure! Effective strategies include: active recall (testing yourself), spaced repetition, connecting new info to what you already know, teaching others, and mixing different topics. Everyone learns differently - some are visual, others prefer hands-on experience. What are you trying to learn?"
+                };
+                
+                this.responsePatterns = [
+                    {
+                        regex: /who are you|what are you|introduce yourself/i,
+                        response: () => "I'm Plugfam AI, designed by Salifu to help you answer your questions. What's on your mind?"
+                    },
+                    {
+                        regex: /how are you|how's it going/i,
+                        response: () => "I'm doing great, thank you for asking! I'm here and ready to help with whatever you need. How are you doing today?"
+                    },
+                    {
+                        regex: /what can you do|your capabilities|help me with/i,
+                        response: () => "I can help with a wide range of things! I can answer questions, explain complex topics, help with problem-solving, assist with creative tasks, provide analysis, help with math and calculations, discuss current events, offer productivity tips, and much more. I aim to be helpful, informative, and engaging. What would you like to explore?"
+                    },
+                    {
+                        regex: /tell me about (.*)/i,
+                        response: (match) => this.explainTopic(match[1])
+                    },
+                    {
+                        regex: /what is (.*)\?/i,
+                        response: (match) => this.defineWord(match[1])
+                    },
+                    {
+                        regex: /how do I (.*)\?|how to (.*)/i,
+                        response: (match) => this.provideHowTo(match[1] || match[2])
+                    },
+                    {
+                        regex: /(\d+)\s*[\*×x]\s*(\d+)/i,
+                        response: (match) => this.calculate('multiply', match[1], match[2])
+                    },
+                    {
+                        regex: /(\d+)\s*\+\s*(\d+)/i,
+                        response: (match) => this.calculate('add', match[1], match[2])
+                    },
+                    {
+                        regex: /(\d+)\s*-\s*(\d+)/i,
+                        response: (match) => this.calculate('subtract', match[1], match[2])
+                    },
+                    {
+                        regex: /(\d+)\s*÷\s*(\d+)|(\d+)\s*\/\s*(\d+)/i,
+                        response: (match) => this.calculate('divide', match[1] || match[3], match[2] || match[4])
+                    },
+                    {
+                        regex: /thank you|thanks|appreciate/i,
+                        response: () => "You're very welcome! I'm glad I could help. Feel free to ask me anything else - I'm here whenever you need assistance! 😊"
+                    },
+                    {
+                        regex: /hello|hi|hey|good morning|good afternoon|good evening/i,
+                        response: () => this.generateGreeting()
+                    },
+                    {
+                        regex: /bye|goodbye|see you|talk later/i,
+                        response: () => "Goodbye! It was great chatting with you. Feel free to come back anytime you have questions or just want to talk. Take care! 👋"
+                    }
+                ];
+            }
+            
+            processQuestion(question) {
+                question = question.trim();
+                const lowerQuestion = question.toLowerCase();
+                
+                // Add to conversation context
+                this.conversationContext.push({type: 'user', content: question, timestamp: Date.now()});
+                
+                // Pattern matching with Meta AI-style responses
+                for (let pattern of this.responsePatterns) {
+                    let match = lowerQuestion.match(pattern.regex);
+                    if (match) {
+                        const response = pattern.response(match);
+                        this.conversationContext.push({type: 'ai', content: response, timestamp: Date.now()});
+                        return response;
+                    }
+                }
+                
+                // Knowledge base lookup with enhanced responses
+                for (let topic in this.knowledgeBase) {
+                    if (lowerQuestion.includes(topic)) {
+                        const response = this.knowledgeBase[topic];
+                        this.conversationContext.push({type: 'ai', content: response, timestamp: Date.now()});
+                        return response;
+                    }
+                }
+                
+                // Contextual default response
+                const fallbackResponses = [
+                    "That's an interesting question! While I don't have specific information about that topic in my current knowledge base, I'd be happy to help you explore it from different angles. Could you provide a bit more context or rephrase your question?",
+                    "I want to make sure I give you the most helpful response possible. Could you tell me a bit more about what you're looking for? I can help with explanations, analysis, problem-solving, or just having a thoughtful discussion about the topic.",
+                    "I'm not entirely sure about that specific topic, but I'm here to help however I can! Could you share what prompted this question or what aspect you're most curious about? That way I can tailor my response to be most useful for you."
+                ];
+                
+                const response = fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)];
+                this.conversationContext.push({type: 'ai', content: response, timestamp: Date.now()});
+                return response;
+            }
+            
+            explainTopic(topic) {
+                topic = topic.toLowerCase().trim();
+                return this.knowledgeBase[topic] || `I'd be happy to discuss ${topic}! While I don't have comprehensive information about that specific topic readily available, I can share what I know or help you think through it. What particular aspect of ${topic} interests you most?`;
+            }
+            
+            defineWord(word) {
+                word = word.toLowerCase().trim();
+                return this.knowledgeBase[word] || `Great question about ${word}! While I don't have a detailed definition readily available, I'd be glad to explore this topic with you. What context are you thinking about ${word} in? That might help me provide more relevant insights.`;
+            }
+            
+            provideHowTo(task) {
+                const howToResponses = {
+                    'learn': "Learning effectively involves several key strategies: set clear goals, break information into manageable chunks, use active recall, practice spaced repetition, and connect new knowledge to what you already know. What specifically are you trying to learn?",
+                    'study': "Effective studying tips: create a dedicated study space, use the Pomodoro technique (25-minute focused sessions), teach concepts to someone else, practice active recall, and review material multiple times over several days. What subject are you studying?",
+                    'be productive': "Boost productivity by: prioritizing important tasks first, minimizing distractions, batching similar activities, taking regular breaks, and setting realistic goals. Time-blocking your calendar can also be incredibly helpful!",
+                    'code': "Learning to code: start with a beginner-friendly language like Python, practice regularly with small projects, break down problems into smaller steps, don't be afraid to make mistakes, and join coding communities for support. What type of programming interests you?"
+                };
+                
+                task = task.toLowerCase().trim();
+                return howToResponses[task] || `That's a great question about how to ${task}! I'd love to help you with that. Could you be a bit more specific about what aspect you're looking to improve or what challenges you're facing?`;
+            }
+            
+            calculate(operation, a, b) {
+                a = parseFloat(a);
+                b = parseFloat(b);
+                
+                let result;
+                let symbol;
+                
+                switch(operation) {
+                    case 'add':
+                        result = a + b;
+                        symbol = '+';
+                        break;
+                    case 'subtract':
+                        result = a - b;
+                        symbol = '-';
+                        break;
+                    case 'multiply':
+                        result = a * b;
+                        symbol = '×';
+                        break;
+                    case 'divide':
+                        if (b === 0) return "I can't divide by zero! That would break the laws of mathematics. 😅 Try a different number.";
+                        result = a / b;
+                        symbol = '÷';
+                        break;
+                }
+                
+                return `${a} ${symbol} ${b} = ${result}${result % 1 !== 0 ? ` (or ${result.toFixed(2)} rounded to 2 decimal places)` : ''}`;
+            }
+            
+            generateGreeting() {
+                const greetings = [
+                    "Hello! Great to see you here. I'm Plugfam AI, and I'm excited to help with whatever you're curious about today!",
+                    "Hey there! I'm Plugfam AI, designed by Salifu. I'm here to help answer questions, solve problems, or just have an interesting conversation. What's on your mind?",
+                    "Hi! Welcome! I'm ready to assist with anything you need - from answering questions to helping with creative projects. How can I help you today?",
+                    "Hello! I'm Plugfam AI, and I'm here to make your day a bit easier and more interesting. What would you like to explore or learn about?"
+                ];
+                
+                return greetings[Math.floor(Math.random() * greetings.length)];
+            }
+        }
+        
+        const ai = new PlugfamAI();
+        let chatContainer = document.getElementById('chatContainer');
+        let questionInput = document.getElementById('questionInput');
+        let typingIndicator = document.getElementById('typingIndicator');
+        
+        // Auto-resize textarea
+        questionInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+        
+        function addMessage(message, isUser = false) {
+            let messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user-message' : 'ai-message'}`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function showTyping() {
+            typingIndicator.style.display = 'flex';
+            chatContainer.appendChild(typingIndicator);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function hideTyping() {
+            typingIndicator.style.display = 'none';
+        }
+        
+        function askQuestion() {
+            let question = questionInput.value.trim();
+            if (!question) return;
+            
+            addMessage(question, true);
+            questionInput.value = '';
+            questionInput.style.height = 'auto';
+            
+            showTyping();
+            
+            // Realistic typing delay that varies based on response complexity
+            const delay = 800 + Math.random() * 1200 + (question.length * 50);
+            
+            setTimeout(() => {
+                hideTyping();
+                let answer = ai.processQuestion(question);
+                addMessage(answer);
+            }, delay);
+        }
+        
+        function askSuggestion(question) {
+            questionInput.value = question;
+            askQuestion();
+        }
+        
+        // Enhanced keyboard handling
+        questionInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                askQuestion();
+            }
+        });
+        
+        // Focus on input when page loads
+        questionInput.focus();
+        
+        // Add some personality with random encouraging messages
+        setInterval(() => {
+            if (chatContainer.children.length === 1) { // Only initial message
+                const encouragements = [
+                    "I'm here whenever you're ready to chat! 🤗",
+                    "Feel free to ask me anything - no question is too big or small!",
+                    "Ready to explore some interesting topics together?"
+                ];
+                // Uncomment below if you want periodic encouragement
+                // console.log(encouragements[Math.floor(Math.random() * encouragements.length)]);
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
